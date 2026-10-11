@@ -1296,3 +1296,144 @@ select {
   background: var(--oxide);
   color: var(--ground);
 }
+
+
+/* ---------- footer: credit + disclaimer ---------- */
+
+.board-foot {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 2px solid var(--ink);
+}
+
+.foot-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.foot-mark {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 88%;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.foot-by {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+
+.board-foot a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.board-foot a:hover {
+  border-bottom-color: var(--accent);
+}
+
+.foot-note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  max-width: 64ch;
+  margin: 0 0 10px;
+}
+
+.foot-copy {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+/* ---------- phones ---------- */
+
+@media (max-width: 560px) {
+  .board {
+    padding: 0 14px 64px;
+  }
+
+  .board-head {
+    gap: 16px;
+    padding-top: 20px;
+  }
+
+  /* the four-across readout is wider than a phone; stack it 2x2 */
+  .readout {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .readout-cell {
+    min-width: 0;
+    padding: 7px 12px 8px;
+  }
+
+  .readout-cell:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .readout-cell:nth-child(2n) {
+    border-right: none;
+  }
+
+  .readout-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+  }
+
+  .readout-value {
+    font-size: 19px;
+  }
+
+  .phase-tab {
+    padding: 12px 14px 10px;
+  }
+
+  .entry,
+  .option,
+  .panel-head,
+  .manual {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .form {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-bar {
+    gap: 12px;
+  }
+}
+
+/* slots already ruled out by a locked subject */
+
+.code-btn.taken {
+  opacity: 0.32;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.code-btn.taken:hover {
+  border-color: var(--rule-strong);
+  color: var(--ink-2);
+}
+
+.slot-bank-note {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin: 12px 0 0;
+}

@@ -5,20 +5,33 @@ import { occupiedByOthers, findClashOwner, describeLock } from '../lib/liveLock'
 import { buildWeekGrid } from '../lib/grid';
 import { colorForIndex } from '../lib/colors';
 import { constrainSubjects, isFeasible } from '../lib/permute';
-import { cellsOverlap, THEORY_SLOT_CODES, LAB_SLOT_CODES } from '../data/timetable';
+import { cellsOverlap, occupiedCells, THEORY_SLOT_CODES, LAB_SLOT_CODES } from '../data/timetable';
 
 /**
  * What you do when the seat you wanted is gone: type the slots you were
  * actually allotted, or tap them from the full slot bank. Either way they
  * feed the same clash filtering as a normal pick.
  */
-function ManualOverride({ onSet }) {
+function ManualOverride({ onSet, owners }) {
   const [open, setOpen] = useState(false);
   const [codes, setCodes] = useState([]);
   const [text, setText] = useState('');
 
-  const toggle = (code) =>
+  // Slots already ruled out by what's locked in elsewhere. Same clash rule the
+  // faculty options use, so the bank can't offer you something impossible.
+  const blockedBy = useMemo(() => {
+    const map = {};
+    for (const code of [...THEORY_SLOT_CODES, ...LAB_SLOT_CODES]) {
+      const owner = findClashOwner(occupiedCells([code]), owners);
+      if (owner) map[code] = owner;
+    }
+    return map;
+  }, [owners]);
+
+  const toggle = (code) => {
+    if (blockedBy[code]) return;
     setCodes((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
+  };
 
   const commitTyped = () => {
     const typed = text.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
@@ -26,6 +39,9 @@ function ManualOverride({ onSet }) {
     setCodes((prev) => [...prev, ...typed.filter((c) => !prev.includes(c))]);
     setText('');
   };
+
+  const conflicting = codes.filter((c) => blockedBy[c]);
+  const blockedCount = Object.keys(blockedBy).length;
 
   if (!open) {
     return (
@@ -63,43 +79,59 @@ function ManualOverride({ onSet }) {
       </div>
 
       <div className="slot-bank">
-        <div className="slot-bank-label">Theory</div>
-        <div className="slot-bank-row">
-          {THEORY_SLOT_CODES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className={`code code-btn${codes.includes(c) ? ' on' : ''}`}
-              onClick={() => toggle(c)}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-        <div className="slot-bank-label">Lab</div>
-        <div className="slot-bank-row">
-          {LAB_SLOT_CODES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className={`code code-btn lab${codes.includes(c) ? ' on' : ''}`}
-              onClick={() => toggle(c)}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+        {[
+          ['Theory', THEORY_SLOT_CODES, ''],
+          ['Lab', LAB_SLOT_CODES, ' lab'],
+        ].map(([label, list, kindClass]) => (
+          <div key={label}>
+            <div className="slot-bank-label">{label}</div>
+            <div className="slot-bank-row">
+              {list.map((c) => {
+                const blocker = blockedBy[c];
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    disabled={!!blocker}
+                    title={blocker ? `Taken — clashes with ${blocker.subjectName} (${blocker.label})` : undefined}
+                    className={`code code-btn${kindClass}${codes.includes(c) ? ' on' : ''}${blocker ? ' taken' : ''}`}
+                    onClick={() => toggle(c)}
+                  >
+                    {c}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        {blockedCount > 0 && (
+          <p className="slot-bank-note">
+            {blockedCount} slot{blockedCount === 1 ? '' : 's'} greyed out — they clash with what you've already
+            locked in.
+          </p>
+        )}
       </div>
 
       <div className="manual-foot">
         <span className="panel-meta">
           {codes.length ? `Selected: ${codes.join(', ')}` : 'Nothing selected yet'}
+          {conflicting.length > 0 && (
+            <span className="reason" style={{ display: 'block' }}>
+              {conflicting.join(', ')} clash{conflicting.length === 1 ? 'es' : ''} with{' '}
+              {blockedBy[conflicting[0]].subjectName}. Remove {conflicting.length === 1 ? 'it' : 'them'} or change
+              that subject first.
+            </span>
+          )}
         </span>
         <div style={{ display: 'flex', gap: 6 }}>
           <button className="btn ghost small" onClick={() => setCodes([])} disabled={!codes.length}>
             Clear
           </button>
-          <button className="btn primary small" onClick={() => onSet(codes)} disabled={!codes.length}>
+          <button
+            className="btn primary small"
+            onClick={() => onSet(codes)}
+            disabled={!codes.length || conflicting.length > 0}
+          >
             Lock it in
           </button>
         </div>
@@ -272,7 +304,7 @@ export default function LiveTab({ subjects, locks, setLocks }) {
                 );
               })}
 
-              {!lock && <ManualOverride onSet={(codes) => lockManual(subject.id, codes)} />}
+              {!lock && <ManualOverride owners={owners} onSet={(codes) => lockManual(subject.id, codes)} />}
               {lock?.type === 'manual' && (
                 <div className="entry">
                   <div className="entry-main">

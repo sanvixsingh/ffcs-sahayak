@@ -201,6 +201,28 @@ export default function App() {
       {phase === 'setup' && <SetupTab subjects={subjects} actions={actions} />}
       {phase === 'explore' && <PermutationsTab subjects={subjects} />}
       {phase === 'register' && <LiveTab subjects={subjects} locks={locks} setLocks={setLocks} />}
+
+      <footer className="board-foot">
+        <div className="foot-row">
+          <span className="foot-mark">FFCS Sahayak</span>
+          <span className="foot-by">
+            Built by{' '}
+            <a href="https://github.com/sanvixsingh" target="_blank" rel="noopener noreferrer">
+              Sanvi Singh
+            </a>
+          </span>
+        </div>
+        <p className="foot-note">
+          Unofficial and student-built — not affiliated with, or endorsed by, VIT. Slot timings follow the
+          published FFCS grid, but always confirm your final slots on the official portal before you register.
+        </p>
+        <p className="foot-copy">
+          © {new Date().getFullYear()} Sanvi Singh ·{' '}
+          <a href="https://github.com/sanvixsingh/ffcs-sahayak" target="_blank" rel="noopener noreferrer">
+            Source on GitHub
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }
