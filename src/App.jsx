@@ -6,6 +6,8 @@ import Odometer from './components/Odometer';
 import { constrainSubjects, countCombinations } from './lib/permute';
 import { describeLock } from './lib/liveLock';
 import { SAMPLE_STATE } from './data/sample';
+import BackupPanel from './components/BackupPanel';
+import { readShareLink, clearShareLink } from './lib/transfer';
 
 const STORAGE_KEY = 'ffcs-sahayak:v1';
 const LEGACY_KEY = 'ffcs-inator:v2';
@@ -40,6 +42,8 @@ export default function App() {
   const [demo, setDemo] = useState(!!start.demo);
   const [phase, setPhase] = useState('setup');
   const [confirmClear, setConfirmClear] = useState(false);
+  // A shortlist arriving in the URL — someone sent their setup over.
+  const [incoming, setIncoming] = useState(() => readShareLink());
 
   useEffect(() => {
     try {
@@ -48,6 +52,21 @@ export default function App() {
       /* storage blocked — the app still works for this session */
     }
   }, [subjects, locks, colorCounter, demo]);
+
+  const applyImport = (importedSubjects) => {
+    setSubjects(importedSubjects);
+    setLocks({});
+    setColorCounter(importedSubjects.length);
+    setDemo(false);
+    setPhase('setup');
+    setIncoming(null);
+    clearShareLink();
+  };
+
+  const dismissIncoming = () => {
+    setIncoming(null);
+    clearShareLink();
+  };
 
   const clearAll = () => {
     setSubjects([]);
@@ -186,6 +205,25 @@ export default function App() {
         )}
       </nav>
 
+      {incoming && (
+        <div className="note demo-note">
+          <span>
+            Someone shared a shortlist with you — {incoming.length} subject
+            {incoming.length === 1 ? '' : 's'} and{' '}
+            {incoming.reduce((n, s2) => n + s2.teachers.length, 0)} faculty options. Loading it replaces whatever
+            is in this browser now.
+          </span>
+          <span style={{ display: 'flex', gap: 8 }}>
+            <button className="btn primary small" onClick={() => applyImport(incoming)}>
+              Load it
+            </button>
+            <button className="btn ghost small" onClick={dismissIncoming}>
+              Ignore
+            </button>
+          </span>
+        </div>
+      )}
+
       {demo && (
         <div className="note demo-note">
           <span>
@@ -198,7 +236,12 @@ export default function App() {
         </div>
       )}
 
-      {phase === 'setup' && <SetupTab subjects={subjects} actions={actions} />}
+      {phase === 'setup' && (
+        <>
+          <SetupTab subjects={subjects} actions={actions} />
+          <BackupPanel subjects={subjects} onImport={applyImport} />
+        </>
+      )}
       {phase === 'explore' && <PermutationsTab subjects={subjects} />}
       {phase === 'register' && <LiveTab subjects={subjects} locks={locks} setLocks={setLocks} />}
 
