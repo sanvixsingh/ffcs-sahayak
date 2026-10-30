@@ -1437,3 +1437,35 @@ select {
   color: var(--ink-3);
   margin: 12px 0 0;
 }
+
+/* ---------- backup & share ---------- */
+
+.backup-body {
+  padding: 14px 16px 16px;
+}
+
+.backup-note {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin: 0 0 12px;
+  max-width: 62ch;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.backup-status {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--stamp-good);
+  margin: 11px 0 0;
+  max-width: 62ch;
+}
+
+.backup-status strong {
+  color: var(--caution);
+}
